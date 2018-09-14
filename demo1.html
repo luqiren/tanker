@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8" />
+		<title>1</title>
+        <style>
+        </style>
+		<script type="text/javascript">
+            var SX = 0;
+            var SY = 0;
+            var SW = 30;
+            var SH = 30;
+            var X = 100;
+            var Y = 100;
+            var W = 40;
+            var H = 40;
+            onload = function () {
+                var canvas = document.getElementById('test-canvas');
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, 800, 800);
+
+                var img = document.getElementById('player');
+                /** 先设置开始剪切的位置，然后剪切的大小，在画布上摆放的位置，在画布上显示的大小 */
+                ctx.drawImage(img, SX, SY, SW, SH, X, Y, W, H);
+            }
+            function tankerMove (sx, sy, sw, sh, x, y, w, h) {
+                var canvas = document.getElementById('test-canvas');
+                var ctx = canvas.getContext('2d');
+                var img = document.getElementById('player');
+                ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+            }
+            document.onkeydown = function (event) {
+                var e = event || window.event || arguments.callee.caller.arguments[0];
+                /** 这里有个小bug，除了方向键，千万别按其他键 */
+                var canvas = document.getElementById('test-canvas');
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#000';
+                ctx.fillRect(X, Y, W, H);
+                if (e.keyCode === 37) {
+                    if (SX === 0 && SY === 190) {
+                        X = X - 10 < 0 ? 0 : X - 10;
+                    } else {
+                        SY = 190;
+                    }
+                    tankerMove(SX, SY, SW, SH, X, Y, W, H);
+                } else if (e.keyCode === 38) {
+                    if (SX === 0 && SY === 0) {
+                        Y = Y - 10 < 0 ? 0 : Y - 10;
+                    } else {
+                        SY = 0;
+                    }
+                    tankerMove(SX, SY, SW, SH, X, Y, W, H);
+                } else if (e.keyCode === 39) {
+                    if (SX === 0 && SY === 64) {
+                        X = X + 10 + W > 800 ? 800 - W : X + 10;
+                    } else {
+                        SY = 64;
+                    }
+                    tankerMove(SX, SY, SW, SH, X, Y, W, H);
+                } else if (e.keyCode === 40) {
+                    if (SX === 0 && SY === 128) {
+                        Y = Y + 10 + H > 800 ? 800 - H : Y + 10;
+                    } else {
+                        SY = 128;
+                    }
+                    tankerMove(SX, SY, SW, SH, X, Y, W, H);
+                }
+            }
+		</script>
+	</head>
+	<body>
+        <canvas id="test-canvas" width="800" height="800"></canvas>
+        <img id="player" src="img/player.png">
+	</body>
+</html>
