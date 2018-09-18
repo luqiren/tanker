@@ -11,8 +11,11 @@
             var ctx;
             var img;
             var enemyImg;
+            var boomImg;
             var player = new Player(100, 100, 0, 10);
             var enemyTanks = new Array();
+            var playerBullets = new Array();
+            var bombs = new Array();
 
             var SX = 0;
             var SY = 0;
@@ -56,6 +59,28 @@
             function Player (x, y, direct, speed) {
                 this.tank = Tank;
                 this.tank(x, y, direct, speed)
+
+                this.shotEnemy = function () {
+					switch (this.direct) {
+						case 0:
+						    bullet = new Bullet(this.x + (W/2), this.y, this.direct, 2, 'player', this);
+						    break;
+						case 1:
+						    bullet = new Bullet(this.x + W, this.y + (H/2), this.direct, 2, 'player', this);
+						    break;
+						case 2:
+						    bullet = new Bullet(this.x + (W/2), this.y + H, this.direct, 2, 'player', this);
+						    break;
+						case 3:
+						    bullet = new Bullet(this.x, this.y + (H/2), this.direct, 2, 'player', this);
+						    break;
+						default:
+						    break;
+					}
+					playerBullets.push(bullet);
+					var timer = window.setInterval('playerBullets[' + (playerBullets.length - 1) + '].run()', 50);
+					playerBullets[playerBullets.length - 1].timer = timer;
+                }
 			}
 
             /** 敌人坦克 */
@@ -87,6 +112,57 @@
 
             }
 
+            /** 子弹类 */
+            function Bullet (x, y, direct, speed, type, tank) {
+                this.x = x;
+                this.y = y;
+                this.direct = direct;
+                this.speed = speed;
+                this.timer = null;
+                this.isLive = true;
+                this.type = type;
+                this.tank =tank;
+
+                this.run = function () {
+					if (this.x < 0 || this.x > 800 || this.y < 0 || this.y > 800 || !this.isLive) {
+					    window.clearInterval(this.timer);
+					    this.isLive = false;
+					} else {
+					    switch (this.direct) {
+							case 0:
+							    this.y -= this.speed;
+							    break;
+							case 1:
+							    this.x += this.speed;
+							    break;
+							case 2:
+							    this.y += this.speed;
+							    break;
+							case 3:
+							    this.x -= this.speed;
+							    break;
+							default:
+							    break;
+						}
+					}
+                }
+			}
+
+			/** 炸弹类 */
+			function Bomb(x, y) {
+			    this.x = x;
+			    this.y = y;
+				this.isLive = true;
+				this.blood = 0;
+				this.bloodUp = function () {
+					if (this.blood < 4) {
+					    this.blood++;
+					} else {
+					    this.isLive = false;
+					}
+                }
+            }
+
 			/** 刷新地图 */
 			function flashTankMap () {
                 ctx.fillStyle = '#000';
@@ -94,6 +170,10 @@
 
                 /** 画玩家坦克 */
                 drawTank(player, 'player');
+                drawPlayerBullet();
+
+                isHitEnemyTank();
+                drawBomb();
 
                 for (var i = 0; i < enemyTanks.length; i++) {
                     drawTank(enemyTanks[i], 'enemy');
@@ -116,6 +196,47 @@
 
 				}
 			}
+
+            /** 画玩家子弹 */
+			function drawPlayerBullet () {
+			    playerBullets.forEach(function(bullet) {
+			        if (bullet && bullet.isLive) {
+                        ctx.fillStyle="#eee";
+                        ctx.beginPath();
+                        ctx.arc(bullet.x + 2, bullet.y, 4, 0, Math.PI*2,true);
+                        ctx.closePath();
+                        ctx.fill();
+
+                    }
+				})
+            }
+
+            /** 画子弹击中的爆炸过程 */
+            function drawBomb () {
+                bombs.forEach(function(bomb) {
+                    if (bomb.isLive) {
+                        ctx.drawImage(boomImg, bomb.blood * 64, 0, 64, 64, bomb.x, bomb.y, W, H);
+                        bomb.bloodUp();
+					}
+				})
+			}
+
+            function isHitEnemyTank () {
+				playerBullets.forEach(function(bullet) {
+				    if (bullet.isLive) {
+				        enemyTanks.forEach(function(enemy) {
+				            if (enemy.isLive) {
+				                if (bullet.x <= enemy.x + W && bullet.x >= enemy.x && bullet.y <= enemy.y + H && bullet.y >= enemy.y) {
+				                    bullet.isLive = false;
+				                    enemy.isLive = false;
+				                    var bomb = new Bomb(enemy.x, enemy.y);
+									bombs.push(bomb);
+								}
+							}
+						})
+					}
+				})
+            }
 
             /** 键盘事件 */
             document.onkeydown = function (event) {
@@ -154,6 +275,9 @@
 						}
 						player.direct = 3;
 					    break;
+					case 32:
+					    player.shotEnemy();
+					    break;
 					default:
 					    flag = false;
 					    break;
@@ -166,6 +290,7 @@
                 ctx = canvas.getContext('2d');
                 img = document.getElementById('player');
                 enemyImg = document.getElementById('enemy');
+                boomImg = document.getElementById('boom');
 
                 ctx.fillStyle = '#000';
                 ctx.fillRect(0, 0, 800, 800);
@@ -184,5 +309,6 @@
         <canvas id="test-canvas" width="800" height="800"></canvas>
         <img style="opacity: 0" id="player" src="img/player.png">
 		<img style="opacity: 0" id="enemy" src="img/enemy.png" >
+		<img style="opacity: 0" id="boom" src="img/boom.png" >
 	</body>
 </html>
