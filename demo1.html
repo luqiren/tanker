@@ -7,6 +7,13 @@
         <style>
         </style>
 		<script type="text/javascript">
+            var canvas;
+            var ctx;
+            var img;
+            var enemyImg;
+            var player = new Player(100, 100, 0, 10);
+            var enemyTanks = new Array();
+
             var SX = 0;
             var SY = 0;
             var SW = 30;
@@ -15,63 +22,167 @@
             var Y = 100;
             var W = 40;
             var H = 40;
-            onload = function () {
-                var canvas = document.getElementById('test-canvas');
-                var ctx = canvas.getContext('2d');
+
+            /**  坦克基类 */
+            function Tank (x, y, direct, speed) {
+				this.x = x;
+				this.y = y;
+				this.direct = direct;
+				this.speed = speed;
+				this.isLive = true;
+
+				this.moveUp = function () {
+					this.y -= speed;
+					this.direct = 0;
+                }
+
+                this.moveRight = function () {
+					this.x += speed;
+                    this.direct = 1;
+                }
+
+                this.moveDown = function () {
+					this.y += speed;
+                    this.direct = 2;
+                }
+
+                this.moveLeft = function () {
+					this.x -= speed;
+                    this.direct = 3;
+                }
+            }
+
+            /** 玩家坦克 */
+            function Player (x, y, direct, speed) {
+                this.tank = Tank;
+                this.tank(x, y, direct, speed)
+			}
+
+            /** 敌人坦克 */
+            function EnemyTank (x, y, direct, speed) {
+                this.tank = Tank;
+                this.tank(x, y, direct, speed)
+
+				this.move = function () {
+                    if (this.x === 0 && this.direct === 3 || this.x === 800 - W && this.direct === 1 || this.y === 0 && this.direct === 0 || this.y === 800 - H && this.direct === 2) {
+                        this.direct = Math.round(Math.random() * 3)
+                    }
+					switch (this.direct) {
+						case 0:
+						    this.y = this.y - this.speed < 0 ? 0 : this.y - this.speed;
+						    break;
+						case 1:
+						    this.x = this.x + this.speed > 800 - W ? 800 - W : this.x + this.speed;
+						    break;
+						case 2:
+                            this.y = this.y + this.speed > 800 - H ? 800 - H : this.y + this.speed;
+                            break;
+						case 3:
+                            this.x = this.x - this.speed < 0 ? 0 : this.x - this.speed;
+                            break;
+						default:
+						    break;
+					}
+                }
+
+            }
+
+			/** 刷新地图 */
+			function flashTankMap () {
                 ctx.fillStyle = '#000';
                 ctx.fillRect(0, 0, 800, 800);
 
-                var img = document.getElementById('player');
-                /** 先设置开始剪切的位置，然后剪切的大小，在画布上摆放的位置，在画布上显示的大小 */
-                ctx.drawImage(img, SX, SY, SW, SH, X, Y, W, H);
-            }
-            function tankerMove (sx, sy, sw, sh, x, y, w, h) {
-                var canvas = document.getElementById('test-canvas');
-                var ctx = canvas.getContext('2d');
-                var img = document.getElementById('player');
-                ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
-            }
+                /** 画玩家坦克 */
+                drawTank(player, 'player');
+
+                for (var i = 0; i < enemyTanks.length; i++) {
+                    drawTank(enemyTanks[i], 'enemy');
+				}
+			}
+
+			function drawTank (tank, type) {
+                if (tank.isLive) {
+                    switch (type) {
+						case 'player':
+                            /** 先设置开始剪切的位置，然后剪切的大小，在画布上摆放的位置，在画布上显示的大小 */
+                            ctx.drawImage(img, SX, tank.direct * 64, SW, SH, tank.x, tank.y, W, H);
+						    break;
+						case 'enemy':
+                            ctx.drawImage(enemyImg, SX, tank.direct * 64, SW, SH, tank.x, tank.y, W, H);
+						    break;
+						default:
+						    break;
+					}
+
+				}
+			}
+
+            /** 键盘事件 */
             document.onkeydown = function (event) {
                 var e = event || window.event || arguments.callee.caller.arguments[0];
-                /** 这里有个小bug，除了方向键，千万别按其他键 */
-                var canvas = document.getElementById('test-canvas');
-                var ctx = canvas.getContext('2d');
+                var flag = true;
+                switch (e.keyCode) {
+					case 38:
+					    if (player.direct === 0) {
+					        player.moveUp();
+					        player.y = player.y < 0 ? 0 : player.y;
+					        break;
+						}
+						player.direct = 0;
+					    break;
+					case 39:
+					    if (player.direct === 1) {
+					        player.moveRight();
+					        player.x = player.x > 800 - W ? 800 - W : player.x;
+					        break;
+						}
+						player.direct = 1;
+					    break;
+					case 40:
+					    if (player.direct === 2) {
+					        player.moveDown();
+					        player.y = player.y > 800 - H ? 800 - H : player.y;
+					        break;
+						}
+						player.direct = 2;
+					    break;
+					case 37:
+					    if (player.direct === 3) {
+					        player.moveLeft();
+					        player.x = player.x < 0 ? 0 : player.x;
+					        break;
+						}
+						player.direct = 3;
+					    break;
+					default:
+					    flag = false;
+					    break;
+				}
+				flag && flashTankMap();
+            }
+
+            onload = function () {
+                canvas = document.getElementById('test-canvas');
+                ctx = canvas.getContext('2d');
+                img = document.getElementById('player');
+                enemyImg = document.getElementById('enemy');
+
                 ctx.fillStyle = '#000';
-                ctx.fillRect(X, Y, W, H);
-                if (e.keyCode === 37) {
-                    if (SX === 0 && SY === 190) {
-                        X = X - 10 < 0 ? 0 : X - 10;
-                    } else {
-                        SY = 190;
-                    }
-                    tankerMove(SX, SY, SW, SH, X, Y, W, H);
-                } else if (e.keyCode === 38) {
-                    if (SX === 0 && SY === 0) {
-                        Y = Y - 10 < 0 ? 0 : Y - 10;
-                    } else {
-                        SY = 0;
-                    }
-                    tankerMove(SX, SY, SW, SH, X, Y, W, H);
-                } else if (e.keyCode === 39) {
-                    if (SX === 0 && SY === 64) {
-                        X = X + 10 + W > 800 ? 800 - W : X + 10;
-                    } else {
-                        SY = 64;
-                    }
-                    tankerMove(SX, SY, SW, SH, X, Y, W, H);
-                } else if (e.keyCode === 40) {
-                    if (SX === 0 && SY === 128) {
-                        Y = Y + 10 + H > 800 ? 800 - H : Y + 10;
-                    } else {
-                        SY = 128;
-                    }
-                    tankerMove(SX, SY, SW, SH, X, Y, W, H);
-                }
+                ctx.fillRect(0, 0, 800, 800);
+
+                for (var i = 0; i < 3; i++) {
+                    var enemyTank = new EnemyTank(Math.random() * (800 - W), Math.random() * (800 - H), Math.round(Math.random() * 3), 5);
+					enemyTanks.push(enemyTank);
+					window.setInterval('enemyTanks[' + i + '].move()', 50);
+				}
+
+                window.setInterval('flashTankMap()',100);
             }
 		</script>
 	</head>
 	<body>
         <canvas id="test-canvas" width="800" height="800"></canvas>
-        <img id="player" src="img/player.png">
+        <img style="opacity: 0" id="player" src="img/player.png">
+		<img style="opacity: 0" id="enemy" src="img/enemy.png" >
 	</body>
 </html>
