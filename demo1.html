@@ -155,7 +155,7 @@
 				this.isLive = true;
 				this.blood = 0;
 				this.bloodUp = function () {
-					if (this.blood < 4) {
+					if (this.blood <= 4) {
 					    this.blood++;
 					} else {
 					    this.isLive = false;
