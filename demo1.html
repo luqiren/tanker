@@ -21,8 +21,6 @@
             var SY = 0;
             var SW = 30;
             var SH = 30;
-            var X = 100;
-            var Y = 100;
             var W = 40;
             var H = 40;
 
@@ -63,16 +61,16 @@
                 this.shotEnemy = function () {
 					switch (this.direct) {
 						case 0:
-						    bullet = new Bullet(this.x + (W/2), this.y, this.direct, 2, 'player', this);
+						    bullet = new Bullet(this.x + (W/2), this.y, this.direct, 5, 'player', this);
 						    break;
 						case 1:
-						    bullet = new Bullet(this.x + W, this.y + (H/2), this.direct, 2, 'player', this);
+						    bullet = new Bullet(this.x + W, this.y + (H/2), this.direct, 5, 'player', this);
 						    break;
 						case 2:
-						    bullet = new Bullet(this.x + (W/2), this.y + H, this.direct, 2, 'player', this);
+						    bullet = new Bullet(this.x + (W/2), this.y + H, this.direct, 5, 'player', this);
 						    break;
 						case 3:
-						    bullet = new Bullet(this.x, this.y + (H/2), this.direct, 2, 'player', this);
+						    bullet = new Bullet(this.x, this.y + (H/2), this.direct, 5, 'player', this);
 						    break;
 						default:
 						    break;
@@ -304,11 +302,25 @@
                 window.setInterval('flashTankMap()',100);
             }
 		</script>
+		<style>
+			* {
+				padding: 0;
+				margin: 0;
+			}
+			body {
+				width: 100%;
+				height:100%;
+			}
+			img {
+				position: absolute;
+				left: -100000px;
+			}
+		</style>
 	</head>
 	<body>
         <canvas id="test-canvas" width="800" height="800"></canvas>
-        <img style="opacity: 0" id="player" src="img/player.png">
-		<img style="opacity: 0" id="enemy" src="img/enemy.png" >
-		<img style="opacity: 0" id="boom" src="img/boom.png" >
+        <img id="player" src="img/player.png">
+		<img id="enemy" src="img/enemy.png" >
+		<img id="boom" src="img/boom.png" >
 	</body>
 </html>
